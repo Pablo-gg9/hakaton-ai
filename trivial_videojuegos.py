@@ -1,12 +1,16 @@
 import random
 
 CATEGORIES = {
-    "azul": {"name": "Geografía de Videojuegos", "color": "Azul"},
-    "marron": {"name": "Arte y Literatura de Videojuegos", "color": "Marrón"},
-    "amarillo": {"name": "Historia de Videojuegos", "color": "Amarillo"},
-    "rosa": {"name": "Espectáculos de Videojuegos", "color": "Rosa"},
-    "verde": {"name": "Ciencia y Naturaleza de Videojuegos", "color": "Verde"},
-    "naranja": {"name": "Deportes y Pasatiempos", "color": "Naranja"},
+    "azul": {"name": "Geografía de Videojuegos", "color": "Azul", "symbol": "🟦"},
+    "marron": {"name": "Arte y Literatura", "color": "Marrón", "symbol": "🟫"},
+    "amarillo": {
+        "name": "Historia de Videojuegos",
+        "color": "Amarillo",
+        "symbol": "🟨",
+    },
+    "rosa": {"name": "Espectáculos", "color": "Rosa", "symbol": "🟪"},
+    "verde": {"name": "Ciencia y Naturaleza", "color": "Verde", "symbol": "🟩"},
+    "naranja": {"name": "Deportes y Pasatiempos", "color": "Naranja", "symbol": "🟧"},
 }
 
 QUESTIONS = {
@@ -173,7 +177,7 @@ QUESTIONS = {
     ],
     "rosa": [
         {
-            "question": "¿Qué actor voiced a Nathan Drake en 'Uncharted'?",
+            "question": "¿Qué actor voicing a Nathan Drake en 'Uncharted'?",
             "options": ["Chris Pratt", "Nolan North", "Mark Wahlberg", "Tom Holland"],
             "answer": 1,
         },
@@ -267,7 +271,7 @@ QUESTIONS = {
     ],
     "naranja": [
         {
-            "question": "¿Cuántos jugadores pueden jugar simultáneamente en 'Super Smash Bros. Ultimate'?",
+            "question": "¿Cuántos jugadores pueden jugar en 'Super Smash Bros. Ultimate'?",
             "options": ["4", "6", "8", "2"],
             "answer": 2,
         },
@@ -323,6 +327,29 @@ GYM_LEADERS = {
     "naranja": {"name": "Giovanni", "pokemon": "Rhydon", "game": "Pokemon Rojo/Azul"},
 }
 
+CATEGORY_POSITIONS = {
+    0: "azul",
+    3: "marron",
+    6: "amarillo",
+    9: "rosa",
+    12: "verde",
+    15: "naranja",
+    19: "azul",
+    22: "marron",
+    25: "amarillo",
+    28: "rosa",
+    31: "verde",
+    34: "naranja",
+    38: "azul",
+    41: "marron",
+    44: "amarillo",
+    47: "rosa",
+    50: "verde",
+    53: "naranja",
+    57: "azul",
+    60: "marron",
+}
+
 WILD_POKEMON = [
     {"name": "Pikachu", "type": "Eléctrico"},
     {"name": "Charmander", "type": "Fuego"},
@@ -346,7 +373,26 @@ WILD_POKEMON = [
     {"name": "Gyarados", "type": "Agua/Volador"},
 ]
 
+BOX_POKEMON = [
+    {"name": "Rattata", "type": "Normal"},
+    {"name": "Raticate", "type": "Normal"},
+    {"name": "Spearow", "type": "Normal/Volador"},
+    {"name": "Fearow", "type": "Normal/Volador"},
+    {"name": "Ekans", "type": "Veneno"},
+    {"name": "Arbok", "type": "Veneno"},
+    {"name": "Pidgey", "type": "Normal/Volador"},
+    {"name": "Pidgeotto", "type": "Normal/Volador"},
+    {"name": "Rattata", "type": "Normal"},
+    {"name": "Sentret", "type": "Normal"},
+    {"name": "Hoothoot", "type": "Normal/Volador"},
+    {"name": "Ledyba", "type": "Bicho/Volador"},
+    {"name": "Spinarak", "type": "Bicho/Veneno"},
+    {"name": "Crobat", "type": "Veneno/Volador"},
+    {"name": "Yanma", "type": "Bicho/Volador"},
+]
+
 MAX_POKEMON = 6
+TOTAL_SPACES = 63
 
 
 class TrivialVideojuegos:
@@ -355,17 +401,12 @@ class TrivialVideojuegos:
         self.position = 0
         self.quesitos = set()
         self.pokedex = []
+        self.pc_storage = []
         self.used_pokemon = []
-        self.used_questions = {
-            "azul": [],
-            "marron": [],
-            "amarillo": [],
-            "rosa": [],
-            "verde": [],
-            "naranja": [],
-        }
+        self.used_questions = {cat: [] for cat in QUESTIONS.keys()}
         self.total_questions = 0
         self.correct_answers = 0
+        self.turns_played = 0
 
     def print_header(self, title):
         print("\n" + "=" * 50)
@@ -374,28 +415,147 @@ class TrivialVideojuegos:
 
     def print_status(self):
         print(f"\n🎮 Jugador: {self.player_name}")
-        print(f"📍 Posición: {self.position}")
+        print(f"📍 Posición: {self.position}/63")
         print(f"🧀 Quesitos: {len(self.quesitos)}/6")
-        print(f"🐾 Pokémon: {len(self.pokedex)}/{MAX_POKEMON}")
+        print(
+            f"🐾 Equipo: {len(self.pokedex)}/{MAX_POKEMON} | PC: {len(self.pc_storage)}"
+        )
+
+    def show_board(self):
+        print("\n" + "=" * 60)
+        print("                    TABLERO TRIVIAL PURSUIT")
+        print("=" * 60)
+
+        category_symbols = {k: v["symbol"] for k, v in CATEGORIES.items()}
+        center = "    🏆    "
+
+        print(
+            f"\n      {category_symbols['azul']}  {category_symbols['marron']}  {category_symbols['amarillo']}  {category_symbols['rosa']}  {category_symbols['verde']}  {category_symbols['naranja']}"
+        )
+        print(f"        0    3    6    9   12   15")
+        print(f"     ┌────┬────┬────┬────┬────┬────┐")
+
+        for row in range(5):
+            spaces = []
+            for col in range(6):
+                if row == 2 and col == 2:
+                    spaces.append(center)
+                elif row == 2 and col == 3:
+                    pos_marker = (
+                        f" {self.player_name[0]} "
+                        if self.position == 0 or row == 0
+                        else "    "
+                    )
+                    spaces.append(f" P{pos_marker}")
+                else:
+                    spaces.append("    ")
+            print(f"     │{'│'.join(spaces)}│")
+            if row < 4:
+                print(f"     ├────┼────┼────┼────┼────┼────┤")
+
+        print(f"     └────┴────┴────┴────┴────┴────┘")
+        print(f"        57   60  (centro)   19   22")
+        print("=" * 60)
 
     def show_pokedex(self):
-        self.print_header("📱 TU POKÉDEX")
+        self.print_header("📱 TU EQUIPO")
         if not self.pokedex:
-            print("\nNo tienes ningún Pokémon todavía.")
+            print("\nNo tienes ningún Pokémon en tu equipo.")
         else:
             for i, p in enumerate(self.pokedex, 1):
                 print(f"  {i}. {p['name']} ({p['type']})")
         print()
 
+    def show_pc(self):
+        self.print_header("💻 PC DE POKÉMON - ALMACÉN")
+        if not self.pc_storage:
+            print("\nEl PC está vacío.")
+        else:
+            print(f"\nTienes {len(self.pc_storage)} Pokémon en el PC:")
+            for i, p in enumerate(self.pc_storage, 1):
+                print(f"  {i}. {p['name']} ({p['type']})")
+
+        if len(self.pokedex) < MAX_POKEMON and self.pc_storage:
+            print("\n📤 Opciones:")
+            print("  1. Sacar Pokémon del PC a tu equipo")
+            print("  2. Volver")
+            try:
+                choice = int(input("\n👉 Opción: "))
+                if choice == 1:
+                    self.withdraw_from_pc()
+            except ValueError:
+                pass
+        print()
+
+    def deposit_to_pc(self):
+        if not self.pokedex:
+            print("No tienes Pokémon en tu equipo para depositar.")
+            return
+
+        self.show_pokedex()
+        try:
+            idx = int(input("👉 Número del Pokémon a depositar: ")) - 1
+            if 0 <= idx < len(self.pokedex):
+                pokemon = self.pokedex.pop(idx)
+                self.pc_storage.append(pokemon)
+                print(f"📦 {pokemon['name']} ha sido depositado en el PC.")
+        except ValueError:
+            print("Opción inválida.")
+
+    def withdraw_from_pc(self):
+        if not self.pc_storage:
+            print("El PC está vacío.")
+            return
+
+        if len(self.pokedex) >= MAX_POKEMON:
+            print("Tu equipo está lleno. Deposita un Pokémon primero.")
+            return
+
+        self.show_pc()
+        try:
+            idx = int(input("👉 Número del Pokémon a sacar: ")) - 1
+            if 0 <= idx < len(self.pc_storage):
+                pokemon = self.pc_storage.pop(idx)
+                self.pokedex.append(pokemon)
+                print(f"📤 {pokemon['name']} ha sido añadido a tu equipo.")
+        except ValueError:
+            print("Opción inválida.")
+
+    def manage_pokemon_menu(self):
+        while True:
+            self.print_header("👤 GESTIÓN DE POKÉMON")
+            print(
+                f"  Equipo: {len(self.pokedex)}/{MAX_POKEMON} | PC: {len(self.pc_storage)}"
+            )
+            print("\n  1. Ver equipo")
+            print("  2. Ver PC")
+            print("  3. Depositar al PC")
+            print("  4. Sacar del PC")
+            print("  5. Volver al juego")
+
+            try:
+                choice = int(input("\n👉 Opción: "))
+                if choice == 1:
+                    self.show_pokedex()
+                elif choice == 2:
+                    self.show_pc()
+                elif choice == 3:
+                    self.deposit_to_pc()
+                elif choice == 4:
+                    self.withdraw_from_pc()
+                elif choice == 5:
+                    break
+            except ValueError:
+                print("Opción inválida.")
+
     def get_random_question(self, category):
-        available_questions = [
+        available = [
             q for q in QUESTIONS[category] if q not in self.used_questions[category]
         ]
-        if not available_questions:
+        if not available:
             self.used_questions[category] = []
-            available_questions = QUESTIONS[category]
-
-        question = random.choice(available_questions)
+            available = QUESTIONS[category]
+        question = random.choice(available)
         self.used_questions[category].append(question)
         return question
 
@@ -403,26 +563,24 @@ class TrivialVideojuegos:
         leader = GYM_LEADERS[category]
         self.print_header(f"LÍDER DE GIMNASIO: {leader['name']}")
         print(f"🎯 Te desafía con su {leader['pokemon']}!")
-        print(f"📺 Juego de referencia: {leader['game']}")
-
+        print(f"📺 Juego: {leader['game']}")
         question = self.get_random_question(category)
         return question, leader
 
     def get_wild_pokemon(self):
-        available_pokemon = [p for p in WILD_POKEMON if p not in self.used_pokemon]
-        if not available_pokemon:
+        all_pokemon = WILD_POKEMON + BOX_POKEMON
+        available = [p for p in all_pokemon if p not in self.used_pokemon]
+        if not available:
             self.used_pokemon = []
-            available_pokemon = WILD_POKEMON
-
-        pokemon = random.choice(available_pokemon)
+            available = all_pokemon
+        pokemon = random.choice(available)
         self.used_pokemon.append(pokemon)
         return pokemon
 
     def wild_pokemon_encounter(self):
         pokemon = self.get_wild_pokemon()
-        self.print_header("🦁 POKÉMON SALVAJE APARECIDO!")
-        print(f"¡Un {pokemon['name']} ({pokemon['type']}) salvaje apareció!")
-
+        self.print_header("🦁 POKÉMON SALVAJE!")
+        print(f"¡Un {pokemon['name']} ({pokemon['type']}) apareció!")
         category = random.choice(list(QUESTIONS.keys()))
         question = self.get_random_question(category)
         return question, pokemon
@@ -430,7 +588,6 @@ class TrivialVideojuegos:
     def ask_question(self, question_data, context=""):
         print(f"\n{context}")
         print(f"❓ {question_data['question']}")
-
         for i, option in enumerate(question_data["options"]):
             print(f"  {i + 1}. {option}")
 
@@ -439,221 +596,162 @@ class TrivialVideojuegos:
                 answer = int(input("\n👉 Tu respuesta (1-4): ")) - 1
                 if 0 <= answer <= 3:
                     break
-                print("Por favor, ingresa un número entre 1 y 4")
+                print("Ingresa 1-4")
             except ValueError:
-                print("Por favor, ingresa un número válido")
+                print("Ingresa un número válido")
 
         self.total_questions += 1
-
         if answer == question_data["answer"]:
-            print("\n✅ ¡CORRECTO! ¡Bien hecho!")
+            print("\n✅ ¡CORRECTO!")
             self.correct_answers += 1
             return True
         else:
             correct = question_data["options"][question_data["answer"]]
-            print(f"\n❌ ¡INCORRECTO! La respuesta era: {correct}")
+            print(f"\n❌ INCORRECTO. Era: {correct}")
             return False
 
     def move_player(self, steps=1):
         self.position += steps
-        if self.position > 63:
-            self.position = self.position % 63
+        if self.position > TOTAL_SPACES:
+            self.position = self.position % TOTAL_SPACES
         print(f"\n🏃 Te mueves {steps} espacios. Posición: {self.position}")
 
+        if self.position in CATEGORY_POSITIONS:
+            cat = CATEGORY_POSITIONS[self.position]
+            print(
+                f"📍 ¡Casilla de {CATEGORIES[cat]['color']}! {CATEGORIES[cat]['symbol']}"
+            )
+
     def add_quesito(self, category):
-        category_info = CATEGORIES[category]
+        info = CATEGORIES[category]
         if category not in self.quesitos:
             self.quesitos.add(category)
-            print(f"\n🧀 ¡HAS OBTENIDO EL QUESITO {category_info['color'].upper()}!")
-            print(f"   Categoría: {category_info['name']}")
+            print(f"\n🧀 ¡QUESITO {info['color'].upper()}! ({info['name']})")
         else:
-            print(f"\n✨ Ya tienes el quesito {category_info['color']}!")
+            print(f"\n✨ Ya tienes el quesito {info['color']}.")
 
     def capture_pokemon(self, new_pokemon):
         if len(self.pokedex) < MAX_POKEMON:
             self.pokedex.append(new_pokemon)
-            print(f"🎉 ¡Has capturado a {new_pokemon['name']}!")
+            print(f"🎉 ¡Capturaste a {new_pokemon['name']}!")
         else:
-            self.print_header("🔄 INVENTARIO LLENO")
-            print(f"Tienes {MAX_POKEMON} Pokémon. ¿Qué quieres hacer?")
+            print(f"\n🔄 Equipo lleno ({MAX_POKEMON}). ¿Qué hacer?")
             print("  1. Sustituir un Pokémon")
-            print("  2. No capturar")
-
-            while True:
-                try:
-                    choice = int(input("\n👉 Opción (1-2): "))
-                    if choice in [1, 2]:
-                        break
-                    print("Ingresa 1 o 2")
-                except ValueError:
-                    print("Ingresa un número válido")
-
-            if choice == 1:
-                self.show_pokedex()
-                while True:
-                    try:
-                        idx = (
-                            int(
-                                input(
-                                    f"👉 Número del Pokémon a sustituir (1-{MAX_POKEMON}): "
-                                )
-                            )
-                            - 1
-                        )
-                        if 0 <= idx < len(self.pokedex):
-                            old_pokemon = self.pokedex[idx]
-                            self.pokedex[idx] = new_pokemon
-                            print(
-                                f"🎉 ¡Has liberado a {old_pokemon['name']} y capturado a {new_pokemon['name']}!"
-                            )
-                            break
-                        print(f"Ingresa un número entre 1 y {len(self.pokedex)}")
-                    except ValueError:
-                        print("Ingresa un número válido")
-            else:
-                print(f"✋ Has decidido no capturar a {new_pokemon['name']}.")
+            print("  2. Depositar en PC")
+            print("  3. No capturar")
+            try:
+                choice = int(input("\n👉 Opción: "))
+                if choice == 1:
+                    self.show_pokedex()
+                    idx = int(input("👉 Pokémon a sustituir: ")) - 1
+                    if 0 <= idx < len(self.pokedex):
+                        old = self.pokedex[idx]
+                        self.pokedex[idx] = new_pokemon
+                        print(f"🔄 {old['name']} → {new_pokemon['name']}")
+                elif choice == 2:
+                    self.pc_storage.append(new_pokemon)
+                    print(f"📦 {new_pokemon['name']} guardado en PC.")
+                else:
+                    print("✋ No capturaste nada.")
+            except ValueError:
+                print("No capturaste nada.")
 
     def play_turn(self):
         self.print_status()
 
-        print("\n📋 Opciones:")
-        print("  1. Jugar turno")
-        print("  2. Ver Pokédex")
-        print("  3. Ver quesitos")
+        print("\n📋 Menú:")
+        print("  1. 🎲 Jugar turno")
+        print("  2. 👤 Gestionar Pokémon")
+        print("  3. 🧀 Ver quesitos")
+        print("  4. 📊 Ver tablero")
 
-        while True:
-            try:
-                option = int(input("\n👉 Opción (1-3): "))
-                if option in [1, 2, 3]:
-                    break
-                print("Ingresa 1, 2 o 3")
-            except ValueError:
-                print("Ingresa un número válido")
+        try:
+            option = int(input("\n👉 Opción: "))
+        except ValueError:
+            option = 1
 
         if option == 2:
-            self.show_pokedex()
-            input("Presiona Enter para continuar...")
+            self.manage_pokemon_menu()
             return False
         elif option == 3:
-            self.print_header("🧀 TUS QUESITOS")
-            for key, cat in CATEGORIES.items():
-                status = "✅" if key in self.quesitos else "❌"
-                print(f"  {status} {cat['color']}: {cat['name']}")
-            print()
-            input("Presiona Enter para continuar...")
+            self.print_header("🧀 QUESITOS")
+            for k, v in CATEGORIES.items():
+                status = "✅" if k in self.quesitos else "❌"
+                print(f"  {status} {v['symbol']} {v['color']}: {v['name']}")
+            input("\nEnter...")
+            return False
+        elif option == 4:
+            self.show_board()
+            input("\nEnter...")
             return False
 
-        input("\n🎲 Presiona Enter para moverte...")
+        self.show_board()
+        input("\n🎲 Presiona Enter para lanzar el dado...")
 
-        dice_roll = random.randint(1, 6)
-        print(f"\n🎲 ¡Sacaste un {dice_roll}!")
+        dice = random.randint(1, 6)
+        print(f"\n🎲 ¡Sacaste un {dice}!")
 
-        self.move_player(dice_roll)
+        self.move_player(dice)
+        self.turns_played += 1
 
         question, pokemon = self.wild_pokemon_encounter()
-
-        correct = self.ask_question(
-            question,
-            context=f"¡Responde correctamente para capturar a {pokemon['name']}!",
-        )
+        correct = self.ask_question(question, f"\n¡Captura a {pokemon['name']}!")
 
         if correct:
             self.capture_pokemon(pokemon)
 
             if len(self.pokedex) >= 3:
-                print(
-                    "\n🏆 ¡Tienes 3 o más Pokémon! ¿Quieres enfrentar a un líder de gimnasio?"
-                )
-                choice = input("  (s/n): ").lower()
-
-                if choice == "s":
-                    available_categories = [
-                        c for c in CATEGORIES.keys() if c not in self.quesitos
-                    ]
-                    if available_categories:
-                        category = random.choice(available_categories)
-                        leader_question, leader = self.battle_gym_leader(category)
-
-                        print(
-                            f"\n🎯 Pregunta para obtener el quesito {CATEGORIES[category]['color']}:"
-                        )
-                        correct = self.ask_question(leader_question)
-
-                        if correct:
-                            self.add_quesito(category)
-                        else:
-                            print("No has podido obtener el quesito esta vez.")
-                    else:
-                        print("¡Ya tienes todos los quesitos!")
+                print("\n🏆 ¿Combatir líder de gimnasio? (s/n)")
+                if input("👉 ").lower() == "s":
+                    disponibles = [c for c in CATEGORIES if c not in self.quesitos]
+                    if disponibles:
+                        cat = random.choice(disponibles)
+                        q, leader = self.battle_gym_leader(cat)
+                        print(f"\n🎯 Quesito {CATEGORIES[cat]['color']}:")
+                        if self.ask_question(q):
+                            self.add_quesito(cat)
 
         return len(self.quesitos) >= 6
 
     def start(self):
         print("\n" + "🎮" * 20)
-        print("\n   TRIVIAL PURSUIT: EDICIÓN VIDEOJUEGOS")
-        print("        Con elementos de Pokémon")
+        print("\n   🧀 TRIVIAL PURSUIT: VIDEOJUEGOS EDITION 🐾")
         print("\n" + "🎮" * 20)
 
         print(f"\n¡Bienvenido, {self.player_name}!")
-        print("\n📋 CATEGORÍAS:")
-        for key, cat in CATEGORIES.items():
-            print(f"  • {cat['color']}: {cat['name']}")
+        print("\n📋 Categorías del tablero:")
+        for k, v in CATEGORIES.items():
+            print(f"  {v['symbol']} {v['color']}: {v['name']}")
 
-        print("\n🎯 OBJETIVO:")
-        print("  - Consigue los 6 quesitos derrotando a los líderes de gimnasio")
-        print("  - Para moverte, enfréntate a Pokémon salvajes")
-        print("  - Si aciertas las preguntas, puedes capturar Pokémon")
-        print("  - Máximo 6 Pokémon en tu inventario")
+        print("\n🎯 Objetivo: Consigue los 6 quesitos!")
+        print("🏃 Mueveten el tablero, combate Pokémon salvajes,")
+        print("   captura 3+ para batallar contra líderes de gimnasio.")
+        print("💻 Usa el PC para gestionar tus Pokémon.")
 
-        print("\n🏃 CÓMO JUGAR:")
-        print("  1. Lanza el dado para moverte")
-        print("  2. Encuentra un Pokémon salvaje")
-        print("  3. Responde correctamente para capturarlo")
-        print("  4. Con 3+ Pokémon, puedes enfrentar a un líder de gimnasio")
-        print("  5. Si tienes 6 Pokémon, puedes sustituir uno al capturar nuevo")
-        print("  6. ¡Gana los 6 quesitos para victory!")
-        print("  7. Usa 'Ver Pokédex' para ver tu inventario")
-
+        self.show_board()
         input("\n🎮 Presiona Enter para comenzar...")
 
-        turns = 0
         max_turns = 50
+        while not self.play_turn() and self.turns_played < max_turns:
+            pass
 
-        while not self.play_turn() and turns < max_turns:
-            turns += 1
-            if turns >= max_turns:
-                print("\n⏰ ¡Se acabaron los turnos!")
-                break
-
-        self.print_header("RESULTADO FINAL")
-        print(f"\n📊 ESTADÍSTICAS:")
-        print(f"  • Quesitos obtenidos: {len(self.quesitos)}/6")
-        print(f"  • Pokémon en equipo: {len(self.pokedex)}")
-        print(f"  • Preguntas contestadas: {self.total_questions}")
-        print(f"  • Respuestas correctas: {self.correct_answers}")
-
-        if self.correct_answers > 0:
-            accuracy = (self.correct_answers / self.total_questions) * 100
-            print(f"  • Precisión: {accuracy:.1f}%")
+        self.print_header("📊 RESULTADO FINAL")
+        print(f"  • Quesitos: {len(self.quesitos)}/6")
+        print(f"  • Turnos jugados: {self.turns_played}")
+        print(f"  • Precisión: {self.correct_answers}/{self.total_questions}")
 
         self.show_pokedex()
 
         if len(self.quesitos) == 6:
-            print("\n🏆 ¡FELICIDADES! ¡HAS GANADO EL JUEGO!")
+            print("\n🏆 ¡FELICIDADES! ¡HAS GANADO!")
         else:
-            print("\n💪 ¡Sigue intentándolo!")
-
-        print("\n" + "=" * 50)
+            print("\n💪 ¡Otra vez será!")
 
 
 def main():
-    print("\n🎮 TRIVIAL PURSUIT: VIDEOJUEGOS EDITION 🎮\n")
-
-    player_name = input("¿Cómo te llamas? ").strip()
-    if not player_name:
-        player_name = "Entrenador"
-
-    game = TrivialVideojuegos(player_name)
+    print("\n🎮 TRIVIAL VIDEOJUEGOS EDITION 🐾\n")
+    name = input("¿Cómo te llamas? ").strip() or "Entrenador"
+    game = TrivialVideojuegos(name)
     game.start()
 
 
