@@ -1,3 +1,7 @@
+# Proyecto hackaton
+
+
+## ¿De que trata mi proyecto?
 Mi proyecto trata de un videojuego en python que combina varios de los 
 clasicos , en si se trata de un juego al estilo trivial con varias preguntas 
 de videojuegos , respetando siempre aquello que representa cada queso 
@@ -8,3 +12,10 @@ sobre videojuegos , cada quesito para poder conseguilo te enfrentaras contra
 un lider de gimnasio de pokemon, en cambio para moverte te tendras que 
 enfrentar a un pokemon salvaje, el cual si aciertas la pregunta podras 
 capturar a un pokemon salvaje
+
+## Funcionalidades:
+
+- El proyecto deberia poder hacer una partida de trivial normal, moverse por el tablero y elegir a donde quieres ir.
+- Combatir con pokemon como un juego de pokemon clasico
+- Gestion de pokemons
+gp

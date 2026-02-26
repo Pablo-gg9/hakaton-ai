@@ -1,0 +1,302 @@
+{
+  "bulbasaur": [
+    "razor-wind",
+    "swords-dance",
+    "cut",
+    "bind"
+  ],
+  "ivysaur": [
+    "swords-dance",
+    "cut",
+    "bind",
+    "vine-whip"
+  ],
+  "venusaur": [
+    "swords-dance",
+    "cut",
+    "bind",
+    "vine-whip"
+  ],
+  "charmander": [
+    "mega-punch",
+    "fire-punch",
+    "thunder-punch",
+    "scratch"
+  ],
+  "charmeleon": [
+    "mega-punch",
+    "fire-punch",
+    "thunder-punch",
+    "scratch"
+  ],
+  "charizard": [
+    "mega-punch",
+    "fire-punch",
+    "thunder-punch",
+    "scratch"
+  ],
+  "squirtle": [
+    "mega-punch",
+    "ice-punch",
+    "mega-kick",
+    "headbutt"
+  ],
+  "wartortle": [
+    "mega-punch",
+    "ice-punch",
+    "mega-kick",
+    "headbutt"
+  ],
+  "blastoise": [
+    "mega-punch",
+    "ice-punch",
+    "mega-kick",
+    "headbutt"
+  ],
+  "caterpie": [
+    "tackle",
+    "string-shot",
+    "snore",
+    "bug-bite"
+  ],
+  "metapod": [
+    "string-shot",
+    "harden",
+    "iron-defense",
+    "bug-bite"
+  ],
+  "butterfree": [
+    "razor-wind",
+    "gust",
+    "whirlwind",
+    "headbutt"
+  ],
+  "weedle": [
+    "poison-sting",
+    "string-shot",
+    "bug-bite",
+    "electroweb"
+  ],
+  "kakuna": [
+    "string-shot",
+    "harden",
+    "iron-defense",
+    "bug-bite"
+  ],
+  "beedrill": [
+    "swords-dance",
+    "cut",
+    "headbutt",
+    "fury-attack"
+  ],
+  "pidgey": [
+    "razor-wind",
+    "gust",
+    "wing-attack",
+    "whirlwind"
+  ],
+  "pidgeotto": [
+    "razor-wind",
+    "gust",
+    "wing-attack",
+    "whirlwind"
+  ],
+  "pidgeot": [
+    "razor-wind",
+    "gust",
+    "wing-attack",
+    "whirlwind"
+  ],
+  "rattata": [
+    "cut",
+    "headbutt",
+    "tackle",
+    "body-slam"
+  ],
+  "raticate": [
+    "swords-dance",
+    "cut",
+    "headbutt",
+    "tackle"
+  ],
+  "spearow": [
+    "razor-wind",
+    "wing-attack",
+    "whirlwind",
+    "fly"
+  ],
+  "fearow": [
+    "razor-wind",
+    "wing-attack",
+    "whirlwind",
+    "fly"
+  ],
+  "ekans": [
+    "bind",
+    "slam",
+    "headbutt",
+    "body-slam"
+  ],
+  "arbok": [
+    "bind",
+    "slam",
+    "headbutt",
+    "body-slam"
+  ],
+  "pikachu": [
+    "mega-punch",
+    "pay-day",
+    "thunder-punch",
+    "slam"
+  ],
+  "raichu": [
+    "mega-punch",
+    "pay-day",
+    "thunder-punch",
+    "slam"
+  ],
+  "sandshrew": [
+    "scratch",
+    "swords-dance",
+    "cut",
+    "sand-attack"
+  ],
+  "sandslash": [
+    "scratch",
+    "swords-dance",
+    "cut",
+    "sand-attack"
+  ],
+  "nidoran-f": [
+    "scratch",
+    "cut",
+    "double-kick",
+    "headbutt"
+  ],
+  "nidorina": [
+    "scratch",
+    "cut",
+    "double-kick",
+    "headbutt"
+  ],
+  "nidoqueen": [
+    "mega-punch",
+    "pay-day",
+    "fire-punch",
+    "ice-punch"
+  ],
+  "nidoran-m": [
+    "cut",
+    "double-kick",
+    "headbutt",
+    "horn-attack"
+  ],
+  "nidorino": [
+    "cut",
+    "double-kick",
+    "headbutt",
+    "horn-attack"
+  ],
+  "nidoking": [
+    "mega-punch",
+    "pay-day",
+    "fire-punch",
+    "ice-punch"
+  ],
+  "clefairy": [
+    "pound",
+    "double-slap",
+    "mega-punch",
+    "fire-punch"
+  ],
+  "clefable": [
+    "pound",
+    "double-slap",
+    "mega-punch",
+    "fire-punch"
+  ],
+  "vulpix": [
+    "headbutt",
+    "tackle",
+    "body-slam",
+    "take-down"
+  ],
+  "ninetales": [
+    "headbutt",
+    "tackle",
+    "body-slam",
+    "take-down"
+  ],
+  "jigglypuff": [
+    "pound",
+    "double-slap",
+    "mega-punch",
+    "fire-punch"
+  ],
+  "wigglytuff": [
+    "pound",
+    "double-slap",
+    "mega-punch",
+    "fire-punch"
+  ],
+  "zubat": [
+    "razor-wind",
+    "gust",
+    "wing-attack",
+    "whirlwind"
+  ],
+  "golbat": [
+    "razor-wind",
+    "gust",
+    "wing-attack",
+    "whirlwind"
+  ],
+  "oddish": [
+    "swords-dance",
+    "cut",
+    "headbutt",
+    "take-down"
+  ],
+  "gloom": [
+    "swords-dance",
+    "cut",
+    "headbutt",
+    "take-down"
+  ],
+  "vileplume": [
+    "swords-dance",
+    "cut",
+    "headbutt",
+    "body-slam"
+  ],
+  "paras": [
+    "scratch",
+    "swords-dance",
+    "cut",
+    "headbutt"
+  ],
+  "parasect": [
+    "scratch",
+    "swords-dance",
+    "cut",
+    "headbutt"
+  ],
+  "venonat": [
+    "headbutt",
+    "tackle",
+    "take-down",
+    "double-edge"
+  ],
+  "venomoth": [
+    "razor-wind",
+    "gust",
+    "whirlwind",
+    "headbutt"
+  ],
+  "diglett": [
+    "scratch",
+    "swords-dance",
+    "cut",
+    "sand-attack"
+  ]
+}

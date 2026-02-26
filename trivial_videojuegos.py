@@ -1,4 +1,374 @@
 import random
+import json
+
+with open("pokemon_data.json", "r") as f:
+    POKEMON_DATA = {p["name"].lower(): p for p in json.load(f)}
+
+with open("pokemon_moves.json", "r") as f:
+    POKEMON_MOVES = json.load(f)
+
+with open("moves_data.json", "r") as f:
+    MOVES_DATA = json.load(f)
+
+TYPE_CHART = {
+    ("normal", "rock"): 0.5,
+    ("normal", "steel"): 0.5,
+    ("normal", "ghost"): 0,
+    ("fire", "fire"): 0.5,
+    ("fire", "water"): 0.5,
+    ("fire", "grass"): 2,
+    ("fire", "ice"): 2,
+    ("fire", "bug"): 2,
+    ("fire", "rock"): 0.5,
+    ("fire", "dragon"): 0.5,
+    ("fire", "steel"): 2,
+    ("water", "fire"): 2,
+    ("water", "water"): 0.5,
+    ("water", "grass"): 0.5,
+    ("water", "ground"): 2,
+    ("water", "rock"): 2,
+    ("water", "dragon"): 0.5,
+    ("electric", "water"): 2,
+    ("electric", "electric"): 0.5,
+    ("electric", "grass"): 0.5,
+    ("electric", "ground"): 0,
+    ("electric", "flying"): 2,
+    ("electric", "dragon"): 0.5,
+    ("grass", "fire"): 0.5,
+    ("grass", "water"): 2,
+    ("grass", "grass"): 0.5,
+    ("grass", "poison"): 0.5,
+    ("grass", "ground"): 2,
+    ("grass", "flying"): 0.5,
+    ("grass", "bug"): 0.5,
+    ("grass", "rock"): 2,
+    ("grass", "dragon"): 0.5,
+    ("grass", "steel"): 0.5,
+    ("ice", "fire"): 0.5,
+    ("ice", "water"): 0.5,
+    ("ice", "grass"): 2,
+    ("ice", "ice"): 0.5,
+    ("ice", "ground"): 2,
+    ("ice", "flying"): 2,
+    ("ice", "bug"): 2,
+    ("ice", "dragon"): 2,
+    ("ice", "steel"): 0.5,
+    ("fighting", "normal"): 2,
+    ("fighting", "ice"): 2,
+    ("fighting", "poison"): 0.5,
+    ("fighting", "flying"): 0.5,
+    ("fighting", "psychic"): 0.5,
+    ("fighting", "bug"): 0.5,
+    ("fighting", "rock"): 2,
+    ("fighting", "ghost"): 0,
+    ("fighting", "dark"): 2,
+    ("fighting", "steel"): 2,
+    ("fighting", "fairy"): 0.5,
+    ("poison", "grass"): 2,
+    ("poison", "poison"): 0.5,
+    ("poison", "ground"): 0.5,
+    ("poison", "rock"): 0.5,
+    ("poison", "ghost"): 0.5,
+    ("poison", "steel"): 0,
+    ("poison", "fairy"): 2,
+    ("ground", "fire"): 2,
+    ("ground", "electric"): 2,
+    ("ground", "grass"): 0.5,
+    ("ground", "poison"): 2,
+    ("ground", "flying"): 0,
+    ("ground", "bug"): 0.5,
+    ("ground", "rock"): 2,
+    ("ground", "steel"): 2,
+    ("flying", "electric"): 0.5,
+    ("flying", "grass"): 2,
+    ("flying", "fighting"): 2,
+    ("flying", "bug"): 2,
+    ("flying", "rock"): 0.5,
+    ("flying", "steel"): 0.5,
+    ("psychic", "fighting"): 2,
+    ("psychic", "poison"): 2,
+    ("psychic", "psychic"): 0.5,
+    ("psychic", "dark"): 0,
+    ("psychic", "steel"): 0.5,
+    ("bug", "fire"): 0.5,
+    ("bug", "grass"): 2,
+    ("bug", "fighting"): 0.5,
+    ("bug", "poison"): 0.5,
+    ("bug", "flying"): 0.5,
+    ("bug", "psychic"): 2,
+    ("bug", "ghost"): 0.5,
+    ("bug", "dark"): 2,
+    ("bug", "steel"): 0.5,
+    ("bug", "fairy"): 0.5,
+    ("rock", "fire"): 2,
+    ("rock", "ice"): 2,
+    ("rock", "fighting"): 0.5,
+    ("rock", "ground"): 0.5,
+    ("rock", "flying"): 2,
+    ("bug", "steel"): 0.5,
+    ("ghost", "normal"): 0,
+    ("ghost", "psychic"): 2,
+    ("ghost", "ghost"): 2,
+    ("ghost", "dark"): 0.5,
+    ("dragon", "dragon"): 2,
+    ("dragon", "steel"): 0.5,
+    ("dragon", "fairy"): 0,
+    ("steel", "fire"): 0.5,
+    ("steel", "water"): 0.5,
+    ("steel", "electric"): 0.5,
+    ("steel", "ice"): 2,
+    ("steel", "rock"): 2,
+    ("steel", "steel"): 0.5,
+    ("steel", "fairy"): 2,
+    ("fairy", "fire"): 0.5,
+    ("fairy", "fighting"): 2,
+    ("fairy", "poison"): 0.5,
+    ("fairy", "dragon"): 2,
+    ("fairy", "dark"): 2,
+    ("fairy", "steel"): 0.5,
+}
+
+
+def get_type_effectiveness(attack_type, defender_types):
+    effectiveness = 1.0
+    for def_type in defender_types:
+        key = (attack_type, def_type.lower())
+        if key in TYPE_CHART:
+            effectiveness *= TYPE_CHART[key]
+    return effectiveness
+
+
+class Pokemon:
+    def __init__(self, name, level=5):
+        self.name = name.lower()
+        self.level = level
+        self.data = POKEMON_DATA.get(self.name)
+        self.moves_names = POKEMON_MOVES.get(self.name, [])
+        self.moves = []
+        self.hp = 0
+        self.max_hp = 0
+        self.current_pp = {}
+
+        if self.data:
+            self._init_stats()
+            self._init_moves()
+
+    def _init_stats(self):
+        base = self.data["stats"]["hp"]
+        self.max_hp = int((base * 2 + 31) * self.level / 100) + self.level + 10
+        self.hp = self.max_hp
+
+        self.attack = (
+            int((self.data["stats"]["attack"] * 2 + 31) * self.level / 100) + 5
+        )
+        self.defense = (
+            int((self.data["stats"]["defense"] * 2 + 31) * self.level / 100) + 5
+        )
+        self.sp_attack = (
+            int((self.data["stats"]["special_attack"] * 2 + 31) * self.level / 100) + 5
+        )
+        self.sp_defense = (
+            int((self.data["stats"]["special_defense"] * 2 + 31) * self.level / 100) + 5
+        )
+        self.speed = int((self.data["stats"]["speed"] * 2 + 31) * self.level / 100) + 5
+
+        self.types = [t.lower() for t in self.data["types"]]
+
+    def _init_moves(self):
+        for move_name in self.moves_names[:4]:
+            move_data = MOVES_DATA.get(move_name)
+            if move_data:
+                self.moves.append(move_data)
+                self.current_pp[move_name] = move_data["pp"]
+
+    def get_move_by_name(self, name):
+        for m in self.moves:
+            if m["name"] == name:
+                return m
+        return None
+
+    def use_pp(self, move_name):
+        if move_name in self.current_pp and self.current_pp[move_name] > 0:
+            self.current_pp[move_name] -= 1
+            return True
+        return False
+
+    def is_fainted(self):
+        return self.hp <= 0
+
+    def display(self):
+        return f"{self.data['name']} (Nv.{self.level}) HP:{self.hp}/{self.max_hp}"
+
+    def show_moves(self):
+        print(f"\n  Movimientos de {self.data['name']}:")
+        for i, m in enumerate(self.moves, 1):
+            pp = self.current_pp.get(m["name"], 0)
+            power = m["power"] if m["power"] > 0 else "-"
+            print(
+                f"  {i}. {m['name'].replace('-', ' ').title()} | Poder: {power} | Tipo: {m['type']} | PP: {pp}/{m['pp']}"
+            )
+
+
+class Battle:
+    def __init__(self, player_pokemon, enemy_pokemon):
+        self.player = player_pokemon
+        self.enemy = enemy_pokemon
+        self.turn = 1
+        self.log = []
+
+    def calculate_damage(self, move, attacker, defender):
+        if move["damage_class"] == "status":
+            return 0, 1.0
+
+        if random.randint(1, 100) > move["accuracy"]:
+            return 0, 0.0
+
+        power = move["power"]
+        if move["damage_class"] == "physical":
+            attack_stat = attacker.attack
+            defense_stat = defender.defense
+        else:
+            attack_stat = attacker.sp_attack
+            defense_stat = defender.sp_defense
+
+        damage = (
+            2 * attacker.level / 5 + 2
+        ) * power * attack_stat / defense_stat / 50 + 2
+
+        effectiveness = get_type_effectiveness(move["type"], defender.types)
+
+        critical = 1
+        if random.randint(1, 16) == 1:
+            critical = 2
+
+        stab = 1.5 if move["type"] in attacker.types else 1.0
+
+        final_damage = int(
+            damage * effectiveness * critical * stab * (random.randint(85, 100) / 100)
+        )
+
+        return final_damage, effectiveness
+
+    def attack(self, attacker, defender, move):
+        name = attacker.data["name"]
+        move_name = move["name"].replace("-", " ").title()
+
+        if not attacker.use_pp(move["name"]):
+            self.log.append(f"  {name} no tiene PP para {move_name}!")
+            return False
+
+        if move["damage_class"] == "status":
+            self.log.append(f"  {name} usó {move_name}!")
+            return False
+
+        damage, effectiveness = self.calculate_damage(move, attacker, defender)
+
+        if effectiveness == 0.0:
+            self.log.append(f"  {name} usó {move_name}! ¡No afecta al enemigo!")
+        elif effectiveness > 1.0:
+            self.log.append(f"  {name} usó {move_name}! ¡Es muy efectivo!")
+        elif effectiveness < 1.0:
+            self.log.append(f"  {name} usó {move_name}! No es muy efectivo...")
+        else:
+            self.log.append(f"  {name} usó {move_name}!")
+
+        if damage > 0:
+            defender.hp = max(0, defender.hp - damage)
+            self.log.append(f"    ¡Infligió {damage} de daño!")
+
+        return True
+
+    def show_status(self):
+        print("\n" + "=" * 50)
+        print(f"  🆚 COMBATE: {self.player.data['name']} vs {self.enemy.data['name']}")
+        print("=" * 50)
+
+        player_hp_bar = "█" * int(20 * self.player.hp / self.player.max_hp)
+        player_empty = "░" * (20 - len(player_hp_bar))
+        enemy_hp_bar = "█" * int(20 * self.enemy.hp / self.enemy.max_hp)
+        enemy_empty = "░" * (20 - len(enemy_hp_bar))
+
+        print(f"\n  {self.enemy.data['name']} (Nv.{self.enemy.level})")
+        print(
+            f"  HP: [{enemy_hp_bar}{enemy_empty}] {self.enemy.hp}/{self.enemy.max_hp}"
+        )
+
+        print(f"\n  vs\n")
+
+        print(f"  {self.player.data['name']} (Nv.{self.player.level})")
+        print(
+            f"  HP: [{player_hp_bar}{player_empty}] {self.player.hp}/{self.player.max_hp}"
+        )
+        print()
+
+    def print_log(self):
+        for entry in self.log:
+            print(entry)
+        self.log = []
+
+    def player_turn(self, move_index):
+        if move_index < 0 or move_index >= len(self.player.moves):
+            self.log.append("  ¡Movimiento inválido!")
+            return False
+
+        move = self.player.moves[move_index]
+
+        if self.player.speed >= self.enemy.speed:
+            self.attack(self.player, self.enemy, move)
+            self.print_log()
+            if self.enemy.is_fainted():
+                return True
+
+            enemy_move = random.choice(self.enemy.moves)
+            self.attack(self.enemy, self.player, enemy_move)
+            self.print_log()
+        else:
+            enemy_move = random.choice(self.enemy.moves)
+            self.attack(self.enemy, self.player, enemy_move)
+            self.print_log()
+            if self.player.is_fainted():
+                return True
+
+            self.attack(self.player, self.enemy, move)
+            self.print_log()
+
+        self.turn += 1
+        return self.enemy.is_fainted()
+
+    def run(self):
+        print("\n" + "🎮" * 15)
+        print("  ¡COMBATE POKÉMON COMIENZA!")
+        print("🎮" * 15)
+
+        self.show_status()
+
+        while not self.player.is_fainted() and not self.enemy.is_fainted():
+            print(f"\n--- Turno {self.turn} ---")
+            self.player.show_moves()
+
+            try:
+                choice = int(input("\n👉 Elige movimiento (1-4): ")) - 1
+            except ValueError:
+                choice = 0
+
+            winner = self.player_turn(choice)
+
+            if winner is True:
+                break
+
+            self.show_status()
+
+        print("\n" + "=" * 50)
+        if self.enemy.is_fainted():
+            print(f"  ¡{self.player.data['name']} gana el combate!")
+            print(f"  🏆 ¡Victoria!")
+        else:
+            print(f"  ¡{self.player.data['name']} ha sido derrotado!")
+            print(f"  💀 ¡Derrota!")
+        print("=" * 50)
+
+        return self.player.is_fainted() == False
+
 
 CATEGORIES = {
     "azul": {"name": "Geografía de Videojuegos", "color": "Azul", "symbol": "🟦"},
@@ -351,45 +721,54 @@ CATEGORY_POSITIONS = {
 }
 
 WILD_POKEMON = [
-    {"name": "Pikachu", "type": "Eléctrico"},
-    {"name": "Charmander", "type": "Fuego"},
-    {"name": "Squirtle", "type": "Agua"},
-    {"name": "Bulbasaur", "type": "Planta/Veneno"},
-    {"name": "Meowth", "type": "Normal"},
-    {"name": "Psyduck", "type": "Agua"},
-    {"name": "Mankey", "type": "Lucha"},
-    {"name": "Poliwag", "type": "Agua"},
-    {"name": "Bellsprout", "type": "Planta/Veneno"},
-    {"name": "Drowzee", "type": "Psíquico"},
-    {"name": "Magikarp", "type": "Agua"},
-    {"name": "Eevee", "type": "Normal"},
-    {"name": "Snorlax", "type": "Normal"},
-    {"name": "Articuno", "type": "Hielo/Volador"},
-    {"name": "Zapdos", "type": "Eléctrico/Volador"},
-    {"name": "Moltres", "type": "Fuego/Volador"},
-    {"name": "Mewtwo", "type": "Psíquico"},
-    {"name": "Mew", "type": "Psíquico"},
-    {"name": "Dragonite", "type": "Dragón/Volador"},
-    {"name": "Gyarados", "type": "Agua/Volador"},
+    "pikachu",
+    "charmander",
+    "squirtle",
+    "bulbasaur",
+    "meowth",
+    "psyduck",
+    "mankey",
+    "poliwag",
+    "bellsprout",
+    "drowzee",
+    "magikarp",
+    "eevee",
+    "snorlax",
+    "raticate",
+    "fearow",
+    "arbok",
+    "pidgeotto",
+    "golbat",
+    "venonat",
+    "venomoth",
 ]
 
 BOX_POKEMON = [
-    {"name": "Rattata", "type": "Normal"},
-    {"name": "Raticate", "type": "Normal"},
-    {"name": "Spearow", "type": "Normal/Volador"},
-    {"name": "Fearow", "type": "Normal/Volador"},
-    {"name": "Ekans", "type": "Veneno"},
-    {"name": "Arbok", "type": "Veneno"},
-    {"name": "Pidgey", "type": "Normal/Volador"},
-    {"name": "Pidgeotto", "type": "Normal/Volador"},
-    {"name": "Rattata", "type": "Normal"},
-    {"name": "Sentret", "type": "Normal"},
-    {"name": "Hoothoot", "type": "Normal/Volador"},
-    {"name": "Ledyba", "type": "Bicho/Volador"},
-    {"name": "Spinarak", "type": "Bicho/Veneno"},
-    {"name": "Crobat", "type": "Veneno/Volador"},
-    {"name": "Yanma", "type": "Bicho/Volador"},
+    "rattata",
+    "spearow",
+    "ekans",
+    "pidgey",
+    "sandshrew",
+    "nidoran-f",
+    "nidoran-m",
+    "clefairy",
+    "vulpix",
+    "jigglypuff",
+    "zubat",
+    "oddish",
+    "paras",
+    "diglett",
+    "meowth",
 ]
+
+GYM_LEADER_POKEMON = {
+    "azul": "starmie",
+    "marron": "onix",
+    "amarillo": "raichu",
+    "rosa": "vileplume",
+    "verde": "muk",
+    "naranja": "rhydon",
+}
 
 MAX_POKEMON = 6
 TOTAL_SPACES = 63
@@ -463,7 +842,13 @@ class TrivialVideojuegos:
             print("\nNo tienes ningún Pokémon en tu equipo.")
         else:
             for i, p in enumerate(self.pokedex, 1):
-                print(f"  {i}. {p['name']} ({p['type']})")
+                if isinstance(p, Pokemon):
+                    types = "/".join(p.data["types"])
+                    print(
+                        f"  {i}. {p.data['name']} (Nv.{p.level}) HP:{p.hp}/{p.max_hp} ({types})"
+                    )
+                else:
+                    print(f"  {i}. {p['name']} ({p['type']})")
         print()
 
     def show_pc(self):
@@ -473,7 +858,13 @@ class TrivialVideojuegos:
         else:
             print(f"\nTienes {len(self.pc_storage)} Pokémon en el PC:")
             for i, p in enumerate(self.pc_storage, 1):
-                print(f"  {i}. {p['name']} ({p['type']})")
+                if isinstance(p, Pokemon):
+                    types = "/".join(p.data["types"])
+                    print(
+                        f"  {i}. {p.data['name']} (Nv.{p.level}) HP:{p.hp}/{p.max_hp} ({types})"
+                    )
+                else:
+                    print(f"  {i}. {p['name']} ({p['type']})")
 
         if len(self.pokedex) < MAX_POKEMON and self.pc_storage:
             print("\n📤 Opciones:")
@@ -497,8 +888,13 @@ class TrivialVideojuegos:
             idx = int(input("👉 Número del Pokémon a depositar: ")) - 1
             if 0 <= idx < len(self.pokedex):
                 pokemon = self.pokedex.pop(idx)
+                name = (
+                    pokemon.data["name"]
+                    if isinstance(pokemon, Pokemon)
+                    else pokemon["name"]
+                )
                 self.pc_storage.append(pokemon)
-                print(f"📦 {pokemon['name']} ha sido depositado en el PC.")
+                print(f"📦 {name} ha sido depositado en el PC.")
         except ValueError:
             print("Opción inválida.")
 
@@ -517,7 +913,12 @@ class TrivialVideojuegos:
             if 0 <= idx < len(self.pc_storage):
                 pokemon = self.pc_storage.pop(idx)
                 self.pokedex.append(pokemon)
-                print(f"📤 {pokemon['name']} ha sido añadido a tu equipo.")
+                name = (
+                    pokemon.data["name"]
+                    if isinstance(pokemon, Pokemon)
+                    else pokemon["name"]
+                )
+                print(f"📤 {name} ha sido añadido a tu equipo.")
         except ValueError:
             print("Opción inválida.")
 
@@ -559,13 +960,22 @@ class TrivialVideojuegos:
         self.used_questions[category].append(question)
         return question
 
+    def get_pokemon_info(self, name):
+        data = POKEMON_DATA.get(name.lower())
+        if data:
+            types = "/".join(data["types"])
+            return {"name": data["name"], "type": types}
+        return {"name": name.title(), "type": "Unknown"}
+
     def battle_gym_leader(self, category):
         leader = GYM_LEADERS[category]
+        pokemon_name = GYM_LEADER_POKEMON[category]
+        pokemon_info = self.get_pokemon_info(pokemon_name)
         self.print_header(f"LÍDER DE GIMNASIO: {leader['name']}")
-        print(f"🎯 Te desafía con su {leader['pokemon']}!")
+        print(f"🎯 Te desafía con su {pokemon_info['name']} ({pokemon_info['type']})!")
         print(f"📺 Juego: {leader['game']}")
         question = self.get_random_question(category)
-        return question, leader
+        return question, leader, pokemon_name
 
     def get_wild_pokemon(self):
         all_pokemon = WILD_POKEMON + BOX_POKEMON
@@ -578,12 +988,13 @@ class TrivialVideojuegos:
         return pokemon
 
     def wild_pokemon_encounter(self):
-        pokemon = self.get_wild_pokemon()
+        pokemon_name = self.get_wild_pokemon()
+        pokemon_info = self.get_pokemon_info(pokemon_name)
         self.print_header("🦁 POKÉMON SALVAJE!")
-        print(f"¡Un {pokemon['name']} ({pokemon['type']}) apareció!")
+        print(f"¡Un {pokemon_info['name']} ({pokemon_info['type']}) apareció!")
         category = random.choice(list(QUESTIONS.keys()))
         question = self.get_random_question(category)
-        return question, pokemon
+        return question, pokemon_name
 
     def ask_question(self, question_data, context=""):
         print(f"\n{context}")
@@ -630,10 +1041,27 @@ class TrivialVideojuegos:
         else:
             print(f"\n✨ Ya tienes el quesito {info['color']}.")
 
-    def capture_pokemon(self, new_pokemon):
+    def capture_pokemon(self, pokemon_name_or_obj):
+        if isinstance(pokemon_name_or_obj, str):
+            pokemon_obj = Pokemon(pokemon_name_or_obj, level=random.randint(3, 7))
+            if not pokemon_obj.data:
+                info = self.get_pokemon_info(pokemon_name_or_obj)
+                print(f"🎉 ¡Capturaste a {info['name']}!")
+                pokemon_obj = {"name": info["name"], "type": info["type"]}
+        else:
+            pokemon_obj = pokemon_name_or_obj
+            if isinstance(pokemon_obj, Pokemon):
+                print(f"🎉 ¡Capturaste a {pokemon_obj.data['name']}!")
+            else:
+                print(f"🎉 ¡Capturaste a {pokemon_obj['name']}!")
+
+        if isinstance(pokemon_obj, Pokemon):
+            poke_to_add = pokemon_obj
+        else:
+            poke_to_add = pokemon_obj
+
         if len(self.pokedex) < MAX_POKEMON:
-            self.pokedex.append(new_pokemon)
-            print(f"🎉 ¡Capturaste a {new_pokemon['name']}!")
+            self.pokedex.append(poke_to_add)
         else:
             print(f"\n🔄 Equipo lleno ({MAX_POKEMON}). ¿Qué hacer?")
             print("  1. Sustituir un Pokémon")
@@ -646,11 +1074,26 @@ class TrivialVideojuegos:
                     idx = int(input("👉 Pokémon a sustituir: ")) - 1
                     if 0 <= idx < len(self.pokedex):
                         old = self.pokedex[idx]
-                        self.pokedex[idx] = new_pokemon
-                        print(f"🔄 {old['name']} → {new_pokemon['name']}")
+                        old_name = (
+                            old.data["name"]
+                            if isinstance(old, Pokemon)
+                            else old["name"]
+                        )
+                        new_name = (
+                            poke_to_add.data["name"]
+                            if isinstance(poke_to_add, Pokemon)
+                            else poke_to_add["name"]
+                        )
+                        self.pokedex[idx] = poke_to_add
+                        print(f"🔄 {old_name} → {new_name}")
                 elif choice == 2:
-                    self.pc_storage.append(new_pokemon)
-                    print(f"📦 {new_pokemon['name']} guardado en PC.")
+                    self.pc_storage.append(poke_to_add)
+                    new_name = (
+                        poke_to_add.data["name"]
+                        if isinstance(poke_to_add, Pokemon)
+                        else poke_to_add["name"]
+                    )
+                    print(f"📦 {new_name} guardado en PC.")
                 else:
                     print("✋ No capturaste nada.")
             except ValueError:
@@ -694,19 +1137,106 @@ class TrivialVideojuegos:
         self.move_player(dice)
         self.turns_played += 1
 
-        question, pokemon = self.wild_pokemon_encounter()
-        correct = self.ask_question(question, f"\n¡Captura a {pokemon['name']}!")
+        question, pokemon_name = self.wild_pokemon_encounter()
 
-        if correct:
-            self.capture_pokemon(pokemon)
+        print(f"\n¡Un {pokemon_name} apareció!")
 
-            if len(self.pokedex) >= 3:
-                print("\n🏆 ¿Combatir líder de gimnasio? (s/n)")
-                if input("👉 ").lower() == "s":
-                    disponibles = [c for c in CATEGORIES if c not in self.quesitos]
-                    if disponibles:
-                        cat = random.choice(disponibles)
-                        q, leader = self.battle_gym_leader(cat)
+        if self.pokedex:
+            print("\n📋 ¿Qué quieres hacer?")
+            print("  1. 💬 Responder pregunta (capturar)")
+            print("  2. ⚔️ Combatir")
+            try:
+                choice = int(input("\n👉 Opción: "))
+            except ValueError:
+                choice = 1
+        else:
+            choice = 1
+
+        if choice == 2 and self.pokedex:
+            enemy_pokemon = Pokemon(pokemon_name, level=random.randint(3, 7))
+            print(
+                f"¡Un {enemy_pokemon.data['name']} (Nv.{enemy_pokemon.level}) apareció!"
+            )
+
+            print("\n👤 Elige tu Pokémon:")
+            for i, p in enumerate(self.pokedex, 1):
+                if isinstance(p, Pokemon):
+                    print(
+                        f"  {i}. {p.data['name']} (Nv.{p.level}) HP:{p.hp}/{p.max_hp}"
+                    )
+                else:
+                    print(f"  {i}. {p['name']}")
+            try:
+                idx = int(input("\n👉 Pokémon: ")) - 1
+                if 0 <= idx < len(self.pokedex):
+                    player_pokemon = self.pokedex[idx]
+                    if isinstance(player_pokemon, Pokemon):
+                        battle = Battle(player_pokemon, enemy_pokemon)
+                        victory = battle.run()
+                        if victory:
+                            self.capture_pokemon(pokemon_name)
+                    else:
+                        print(
+                            "Este Pokémon necesita ser actualizado. Responde la pregunta."
+                        )
+                        correct = self.ask_question(
+                            question, f"\n¡Captura a {pokemon_name}!"
+                        )
+                        if correct:
+                            self.capture_pokemon(pokemon_name)
+                else:
+                    correct = self.ask_question(
+                        question, f"\n¡Captura a {pokemon_name}!"
+                    )
+                    if correct:
+                        self.capture_pokemon(pokemon_name)
+            except ValueError:
+                correct = self.ask_question(question, f"\n¡Captura a {pokemon_name}!")
+                if correct:
+                    self.capture_pokemon(pokemon_name)
+        else:
+            correct = self.ask_question(question, f"\n¡Captura a {pokemon_name}!")
+            if correct:
+                self.capture_pokemon(pokemon_name)
+
+        if len(self.pokedex) >= 3:
+            print("\n🏆 ¿Combatir líder de gimnasio? (s/n)")
+            if input("👉 ").lower() == "s":
+                disponibles = [c for c in CATEGORIES if c not in self.quesitos]
+                if disponibles:
+                    cat = random.choice(disponibles)
+                    q, leader, enemy_name = self.battle_gym_leader(cat)
+
+                    print("\n👤 Elige tu Pokémon para el combate de gimnasio:")
+                    for i, p in enumerate(self.pokedex, 1):
+                        if isinstance(p, Pokemon):
+                            print(
+                                f"  {i}. {p.data['name']} (Nv.{p.level}) HP:{p.hp}/{p.max_hp}"
+                            )
+                        else:
+                            print(f"  {i}. {p['name']}")
+                    try:
+                        idx = int(input("\n👉 Pokémon: ")) - 1
+                        if 0 <= idx < len(self.pokedex):
+                            player_pokemon = self.pokedex[idx]
+                            if isinstance(player_pokemon, Pokemon):
+                                enemy_pokemon = Pokemon(enemy_name, level=10)
+                                print(
+                                    f"¡El líder usa a {enemy_pokemon.data['name']} (Nv.{enemy_pokemon.level})!"
+                                )
+                                battle = Battle(player_pokemon, enemy_pokemon)
+                                victory = battle.run()
+                                if victory:
+                                    self.add_quesito(cat)
+                            else:
+                                print(f"\n🎯 Quesito {CATEGORIES[cat]['color']}:")
+                                if self.ask_question(q):
+                                    self.add_quesito(cat)
+                        else:
+                            print(f"\n🎯 Quesito {CATEGORIES[cat]['color']}:")
+                            if self.ask_question(q):
+                                self.add_quesito(cat)
+                    except ValueError:
                         print(f"\n🎯 Quesito {CATEGORIES[cat]['color']}:")
                         if self.ask_question(q):
                             self.add_quesito(cat)
